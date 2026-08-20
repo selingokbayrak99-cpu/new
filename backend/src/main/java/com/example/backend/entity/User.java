@@ -1,82 +1,116 @@
 package com.example.backend.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
-    private String ad;
-    private String soyad;
-    private String mail;
-    private String sifre;
-    private Integer yas;
-    private String cinsiyet;
+    @Column(nullable = false)
+    private String firstName;
 
-    public User() {
+    @Column(nullable = false)
+    private String lastName;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    private Integer yearOfBirth;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UUID.randomUUID();
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    public Long getId() {
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public String getAd() {
-        return ad;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
-    public void setAd(String ad) {
-        this.ad = ad;
+    public String getLastName() {
+        return lastName;
     }
 
-    public String getSoyad() {
-        return soyad;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
-    public void setSoyad(String soyad) {
-        this.soyad = soyad;
+    public String getEmail() {
+        return email;
     }
 
-    public String getMail() {
-        return mail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public void setMail(String mail) {
-        this.mail = mail;
+    public String getPassword() {
+        return password;
     }
 
-    public String getSifre() {
-        return sifre;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    public void setSifre(String sifre) {
-        this.sifre = sifre;
+    public Integer getYearOfBirth() {
+        return yearOfBirth;
     }
 
-    public Integer getYas() {
-        return yas;
+    public void setYearOfBirth(Integer yearOfBirth) {
+        this.yearOfBirth = yearOfBirth;
     }
 
-    public void setYas(Integer yas) {
-        this.yas = yas;
+    public Gender getGender() {
+        return gender;
     }
 
-    public String getCinsiyet() {
-        return cinsiyet;
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 
-    public void setCinsiyet(String cinsiyet) {
-        this.cinsiyet = cinsiyet;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }
