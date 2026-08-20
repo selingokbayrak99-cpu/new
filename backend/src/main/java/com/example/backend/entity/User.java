@@ -20,21 +20,21 @@ public class User {
     private UUID id;
 
     @Column(nullable = false)
-    private String ad;
+    private String firstName;
 
     @Column(nullable = false)
-    private String soyad;
+    private String lastName;
 
     @Column(nullable = false, unique = true)
-    private String mail;
+    private String email;
 
     @Column(nullable = false)
-    private String sifre;
+    private String password;
 
     private Integer yearOfBirth;
 
     @Enumerated(EnumType.STRING)
-    private Cinsiyet cinsiyet;
+    private Gender gender;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -58,36 +58,36 @@ public class User {
         return id;
     }
 
-    public String getAd() {
-        return ad;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setAd(String ad) {
-        this.ad = ad;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
-    public String getSoyad() {
-        return soyad;
+    public String getLastName() {
+        return lastName;
     }
 
-    public void setSoyad(String soyad) {
-        this.soyad = soyad;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
-    public String getMail() {
-        return mail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setMail(String mail) {
-        this.mail = mail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public String getSifre() {
-        return sifre;
+    public String getPassword() {
+        return password;
     }
 
-    public void setSifre(String sifre) {
-        this.sifre = sifre;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Integer getYearOfBirth() {
@@ -98,12 +98,12 @@ public class User {
         this.yearOfBirth = yearOfBirth;
     }
 
-    public Cinsiyet getCinsiyet() {
-        return cinsiyet;
+    public Gender getGender() {
+        return gender;
     }
 
-    public void setCinsiyet(Cinsiyet cinsiyet) {
-        this.cinsiyet = cinsiyet;
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 
     public LocalDateTime getCreatedAt() {
