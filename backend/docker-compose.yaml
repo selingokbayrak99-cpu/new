@@ -1,0 +1,14 @@
+services:
+  database:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=random_password
+      - POSTGRES_DB=db
+
+  adminer:
+    image: adminer
+    ports:
+      - 8081:8080
