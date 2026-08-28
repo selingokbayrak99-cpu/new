@@ -1,425 +1,162 @@
-import './App.css'
+﻿import './App.css'
 
-import { useForm } from '@tanstack/react-form'
-import { useMutation } from '@tanstack/react-query'
-import { z } from 'zod'
+import { useEffect, useState } from 'react'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+
+import Login from './Login'
+import Signup from './SignUp'
+import Public from './Public'
+import Private from './Private'
 
 function App() {
-  // Zod validation schema
-  const signupSchema = z
-    .object({
-      firstName: z.string().min(1, 'First name is required'),
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-      lastName: z.string().min(1, 'Last name is required'),
+  const navigate = useNavigate()
 
-      email: z
-        .string()
-        .min(1, 'Email is required')
-        .email('Please enter a valid email'),
+  // -------------------------
+  // CHECK SESSION
+  // -------------------------
 
-      password: z
-        .string()
-        .min(1, 'Password is required')
-        .min(6, 'Password must be at least 6 characters'),
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch(
+          'http://localhost:8080/auth/me',
+          {
+            method: 'GET',
+            credentials: 'include',
+          }
+        )
 
-      confirmPassword: z
-        .string()
-        .min(1, 'Please confirm your password'),
+        if (response.ok) {
+          const currentUser = await response.json()
+          setUser(currentUser)
+        } else {
+          setUser(null)
+        }
+      } catch (error) {
+        console.error('Session check error:', error)
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-      yearOfBirth: z.string(),
+    checkSession()
+  }, [])
 
-      gender: z.string(),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-      message: 'Passwords do not match',
-      path: ['confirmPassword'],
-    })
+  // -------------------------
+  // LOGOUT
+  // -------------------------
 
-  const signupMutation = useMutation({
-    mutationFn: async (formData) => {
-      const response = await fetch(
-        'http://localhost:8080/auth/signup',
+  const handleLogout = async () => {
+    try {
+      await fetch(
+        'http://localhost:8080/auth/logout',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            password: formData.password,
-            yearOfBirth: formData.yearOfBirth
-              ? Number(formData.yearOfBirth)
-              : null,
-            gender: formData.gender || null,
-          }),
+          credentials: 'include',
         }
       )
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || 'Signup failed')
-      }
+    setUser(null)
+    navigate('/public')
+  }
 
-      return response.json()
-    },
-  })
+  // -------------------------
+  // LOADING
+  // -------------------------
 
-  const form = useForm({
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      yearOfBirth: '',
-      gender: '',
-    },
+  if (loading) {
+    return <div>Loading...</div>
+  }
 
-    onSubmit: async ({ value }) => {
-      const result = signupSchema.safeParse(value)
-
-      if (!result.success) {
-        return
-      }
-
-      // confirmPassword backend'e gönderilmiyor
-      signupMutation.mutate(value)
-    },
-  })
+  // -------------------------
+  // ROUTES
+  // -------------------------
 
   return (
-    <div className="signup-container">
-      <div className="signup-card">
-        <h1>Sign Up</h1>
+    <Routes>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            form.handleSubmit()
-          }}
-        >
+      {/* PUBLIC PAGE */}
 
-          {/* First Name */}
-          <form.Field
-            name="firstName"
-            validators={{
-              onChange: ({ value }) =>
-                !value ? 'First name is required' : undefined,
-            }}
-          >
-            {(field) => (
-              <>
-                <label htmlFor={field.name}>
-                  First Name
-                </label>
+      <Route
+        path="/public"
+        element={
+          <Public
+            user={user}
+            onNavigate={navigate}
+            onLogout={handleLogout}
+          />
+        }
+      />
 
-                <input
-                  id={field.name}
-                  name={field.name}
-                  type="text"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) =>
-                    field.handleChange(e.target.value)
-                  }
-                />
+      {/* LOGIN PAGE */}
 
-                {field.state.meta.errors.length > 0 && (
-                  <div className="field-error">
-                    {field.state.meta.errors.join(', ')}
-                  </div>
-                )}
-              </>
-            )}
-          </form.Field>
+      <Route
+        path="/login"
+        element={
+          user ? (
+            <Navigate to="/private" replace />
+          ) : (
+            <Login
+              onLoginSuccess={(loggedInUser) => {
+                setUser(loggedInUser)
+                navigate('/private')
+              }}
+            />
+          )
+        }
+      />
 
-          {/* Last Name */}
-          <form.Field
-            name="lastName"
-            validators={{
-              onChange: ({ value }) =>
-                !value ? 'Last name is required' : undefined,
-            }}
-          >
-            {(field) => (
-              <>
-                <label htmlFor={field.name}>
-                  Last Name
-                </label>
+      {/* SIGNUP PAGE */}
 
-                <input
-                  id={field.name}
-                  name={field.name}
-                  type="text"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) =>
-                    field.handleChange(e.target.value)
-                  }
-                />
+      <Route
+        path="/signup"
+        element={
+          <Signup />
+        }
+      />
 
-                {field.state.meta.errors.length > 0 && (
-                  <div className="field-error">
-                    {field.state.meta.errors.join(', ')}
-                  </div>
-                )}
-              </>
-            )}
-          </form.Field>
+      {/* PRIVATE PAGE */}
 
-          {/* Email */}
-          <form.Field
-            name="email"
-            validators={{
-              onChange: ({ value }) => {
-                if (!value) {
-                  return 'Email is required'
-                }
+      <Route
+        path="/private"
+        element={
+          user ? (
+            <Private
+              user={user}
+              onLogout={handleLogout}
+            />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
 
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                  return 'Please enter a valid email'
-                }
+      {/* DEFAULT */}
 
-                return undefined
-              },
-            }}
-          >
-            {(field) => (
-              <>
-                <label htmlFor={field.name}>
-                  Email
-                </label>
+      <Route
+        path="/"
+        element={
+          <Navigate to="/public" replace />
+        }
+      />
 
-                <input
-                  id={field.name}
-                  name={field.name}
-                  type="email"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) =>
-                    field.handleChange(e.target.value)
-                  }
-                />
+      {/* UNKNOWN URL */}
 
-                {field.state.meta.errors.length > 0 && (
-                  <div className="field-error">
-                    {field.state.meta.errors.join(', ')}
-                  </div>
-                )}
-              </>
-            )}
-          </form.Field>
+      <Route
+        path="*"
+        element={
+          <Navigate to="/public" replace />
+        }
+      />
 
-          {/* Password */}
-          <form.Field
-            name="password"
-            validators={{
-              onChange: ({ value }) => {
-                if (!value) {
-                  return 'Password is required'
-                }
-
-                if (value.length < 6) {
-                  return 'Password must be at least 6 characters'
-                }
-
-                return undefined
-              },
-            }}
-          >
-            {(field) => (
-              <>
-                <label htmlFor={field.name}>
-                  Password
-                </label>
-
-                <input
-                  id={field.name}
-                  name={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) =>
-                    field.handleChange(e.target.value)
-                  }
-                />
-
-                {field.state.meta.errors.length > 0 && (
-                  <div className="field-error">
-                    {field.state.meta.errors.join(', ')}
-                  </div>
-                )}
-              </>
-            )}
-          </form.Field>
-
-          {/* Confirm Password */}
-          <form.Field
-            name="confirmPassword"
-            validators={{
-              onChange: ({ value }) => {
-                if (!value) {
-                  return 'Please confirm your password'
-                }
-
-                const password =
-                  form.getFieldValue('password')
-
-                if (value !== password) {
-                  return 'Passwords do not match'
-                }
-
-                return undefined
-              },
-            }}
-          >
-            {(field) => (
-              <>
-                <label htmlFor={field.name}>
-                  Confirm Password
-                </label>
-
-                <input
-                  id={field.name}
-                  name={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) =>
-                    field.handleChange(e.target.value)
-                  }
-                />
-
-                {field.state.meta.errors.length > 0 && (
-                  <div className="field-error">
-                    {field.state.meta.errors.join(', ')}
-                  </div>
-                )}
-              </>
-            )}
-          </form.Field>
-
-          {/* Year of Birth */}
-          <form.Field
-            name="yearOfBirth"
-            validators={{
-              onChange: ({ value }) => {
-                if (value && value.length > 4) {
-                  return 'Year of Birth must be 4 digits'
-                }
-
-                return undefined
-              },
-            }}
-          >
-            {(field) => (
-              <>
-                <label htmlFor={field.name}>
-                  Year of Birth
-                </label>
-
-                <input
-                  id={field.name}
-                  name={field.name}
-                  type="number"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => {
-                    const value = e.target.value
-
-                    if (value.length <= 4) {
-                      field.handleChange(value)
-                    }
-                  }}
-                />
-
-                {field.state.meta.errors.length > 0 && (
-                  <div className="field-error">
-                    {field.state.meta.errors.join(', ')}
-                  </div>
-                )}
-              </>
-            )}
-          </form.Field>
-
-          {/* Gender */}
-          <form.Field name="gender">
-            {(field) => (
-              <>
-                <label htmlFor={field.name}>
-                  Gender
-                </label>
-
-                <select
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) =>
-                    field.handleChange(e.target.value)
-                  }
-                >
-                  <option value="">
-                    Select gender
-                  </option>
-
-                  <option value="FEMALE">
-                    Female
-                  </option>
-
-                  <option value="MALE">
-                    Male
-                  </option>
-
-                  <option value="OTHER">
-                    Other
-                  </option>
-                </select>
-              </>
-            )}
-          </form.Field>
-
-          {/* Sign Up Button */}
-          <button
-            type="submit"
-            disabled={signupMutation.isPending}
-          >
-            {signupMutation.isPending
-              ? 'Signing Up...'
-              : 'Sign Up'}
-          </button>
-
-        </form>
-
-        {/* Success Message */}
-        {signupMutation.isSuccess && (
-          <div className="success-message">
-            <h3>
-              Sign Up Successful! 🎉
-            </h3>
-
-            <p>
-              Your account has been created successfully.
-            </p>
-
-            <p>
-              Please check your email to verify your account.
-            </p>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {signupMutation.isError && (
-          <div className="error-message">
-            {signupMutation.error.message}
-          </div>
-        )}
-
-      </div>
-    </div>
+    </Routes>
   )
 }
 
