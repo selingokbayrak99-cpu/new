@@ -1,10 +1,10 @@
-﻿import './App.css'
+import './App.css'
 
 import { useEffect, useState } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 
 import Login from './Login'
-import Signup from './SignUp'
+import Signup from './Signup'
 import Public from './Public'
 import Private from './Private'
 
