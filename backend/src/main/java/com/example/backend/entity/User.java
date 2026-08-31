@@ -1,5 +1,6 @@
 package com.example.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,6 +29,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
@@ -37,7 +39,10 @@ public class User {
     private Gender gender;
 
     @Column(nullable = false)
-    private boolean emailVerified;
+<<<<<<< HEAD
+    private boolean emailVerified = false;
+=======
+>>>>>>> origin/main
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
