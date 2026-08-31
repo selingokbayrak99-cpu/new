@@ -39,7 +39,10 @@ public class User {
     private Gender gender;
 
     @Column(nullable = false)
+<<<<<<< HEAD
     private boolean emailVerified = false;
+=======
+>>>>>>> origin/main
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
